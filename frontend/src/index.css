@@ -1,0 +1,300 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Dark mode defaults */
+    --background: 222 47% 6%;
+    --foreground: 210 40% 96%;
+    --card: 222 47% 9%;
+    --card-foreground: 210 40% 96%;
+    --primary: 239 84% 67%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 70% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 222 47% 14%;
+    --muted-foreground: 215 20% 55%;
+    --accent: 222 47% 14%;
+    --accent-foreground: 210 40% 96%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 222 30% 18%;
+    --input: 222 30% 18%;
+    --ring: 239 84% 67%;
+    --radius: 0.75rem;
+  }
+
+  /* ─── Light Mode ─── */
+  html:not(.dark) {
+    --background: 220 20% 97%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --primary: 239 84% 60%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 270 70% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 15% 92%;
+    --muted-foreground: 215 16% 40%;
+    --accent: 220 15% 92%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 84% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 13% 85%;
+    --input: 220 13% 85%;
+    --ring: 239 84% 60%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html, body {
+    height: 100%;
+    /* Prevent elastic overscroll bounce at edges */
+    overscroll-behavior: none;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    min-height: 100%;
+    /* Support PWA window-controls-overlay / notch safe areas */
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-left: env(safe-area-inset-left, 0px);
+    padding-right: env(safe-area-inset-right, 0px);
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground));
+  }
+}
+
+@layer components {
+  /* Dark mode glass */
+  .dark .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+  .dark .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-6;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Fallback glass (also covers light mode non-dark class) */
+  .glass {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+  }
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 rounded-xl p-6;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Light mode glass overrides */
+  html:not(.dark) .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-black/10;
+  }
+  html:not(.dark) .glass-card {
+    @apply bg-white/90 backdrop-blur-xl border border-black/10 rounded-xl p-6;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500;
+  }
+
+  /* Light mode gradient text is slightly darker for contrast */
+  html:not(.dark) .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600;
+  }
+
+  .gradient-border {
+    position: relative;
+    border: 1px solid transparent;
+    background-clip: padding-box;
+  }
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--secondary)));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-400 hover:to-purple-500 text-white font-medium px-6 py-3 rounded-lg transition-all duration-300 shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] active:scale-[0.98];
+  }
+
+  /* Dark btn-secondary */
+  .dark .btn-secondary {
+    @apply bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10 font-medium px-6 py-3 rounded-lg transition-all duration-300;
+  }
+  .btn-secondary {
+    @apply bg-white/5 hover:bg-white/10 text-white/80 hover:text-white border border-white/10 font-medium px-6 py-3 rounded-lg transition-all duration-300;
+  }
+
+  /* Light btn-secondary */
+  html:not(.dark) .btn-secondary {
+    @apply bg-gray-100 hover:bg-gray-200 text-gray-700 hover:text-gray-900 border border-gray-200 hover:border-gray-300;
+  }
+
+  .chip {
+    @apply px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer select-none;
+  }
+  .chip-default {
+    @apply chip bg-white/5 text-white/60 hover:bg-white/10 hover:text-white/80 border border-white/10;
+  }
+  html:not(.dark) .chip-default {
+    @apply bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-800 border border-gray-200;
+  }
+  .chip-active {
+    @apply chip bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-400 border border-indigo-500/30;
+  }
+  html:not(.dark) .chip-active {
+    @apply bg-gradient-to-r from-indigo-100 to-purple-100 text-indigo-700 border border-indigo-300;
+  }
+
+  /* Input field */
+  .input-field {
+    @apply w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500/50 transition-all duration-200;
+  }
+  html:not(.dark) .input-field {
+    @apply bg-white border border-gray-200 text-gray-900 placeholder-gray-400 focus:ring-indigo-500/30 focus:border-indigo-400;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* ─── Mobile-specific utilities ─── */
+@media (max-width: 767px) {
+  /* Hide scrollbar on mobile for cleaner look */
+  .mobile-no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .mobile-no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* ─── Safe area / PWA insets ──────────────────────────────────────────────── */
+
+/* Adds bottom padding equal to the device's safe-area (home-bar / nav gesture) */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Use for fixed elements anchored just above the bottom nav */
+.drawer-bottom {
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Pages inside the shell get automatic bottom padding on mobile so content
+   is never hidden behind the bottom navigation bar */
+@media (max-width: 767px) {
+  .mobile-page-content {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  /* Auto-apply to the main scrollable area's children */
+  main > * {
+    padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+/* Smooth & contained touch scrolling (prevents parent scroll bleed) */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* ─── PWA standalone mode tweaks ─────────────────────────────────────────── */
+@media (display-mode: standalone) {
+  /* Ensure body does not double-pad in standalone */
+  body {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+}
+
+/* ─── Mobile List View ─────────────────────────────────────────────────────── */
+
+/* Vertikale Liste mit Divider-Linien */
+.list-view {
+  display: flex;
+  flex-direction: column;
+}
+
+.list-view .list-divider {
+  height: 1px;
+  background: hsl(var(--border));
+  margin: 0;
+}
+
+/* Lazy-load fade-in für Bilder */
+img[loading='lazy'] {
+  transition: opacity 0.3s ease;
+}
+img[loading='lazy']:not([src]) {
+  opacity: 0;
+}
+
+/* ─── MobileModal Utilities ────────────────────────────────────────────────── */
+
+/* Verhindert Scroll hinter dem Modal auf iOS Safari */
+.modal-open {
+  overflow: hidden;
+  touch-action: none;
+  position: fixed;
+  width: 100%;
+}
+
+/* Smooth drag-handle cursor */
+.drag-handle {
+  cursor: grab;
+  touch-action: pan-y;
+}
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+/* ─── Touch optimization ─────────────────────────────────────────────────── */
+
+/* Sicherstellen dass alle interaktiven Elemente min. 44px hoch sind */
+@media (max-width: 767px) {
+  button:not(.no-min-touch),
+  [role='button']:not(.no-min-touch) {
+    min-height: 36px;
+  }
+  
+  /* Aktive Zustände bei Touch deutlich sichtbar */
+  button:active,
+  [role='button']:active {
+    opacity: 0.8;
+  }
+}
+
+/* Verbessertes Tap-Highlighting auf Mobile */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
