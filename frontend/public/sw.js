@@ -1,66 +1,76 @@
-const CACHE_NAME = 'promptcraft-v1';
+const CACHE_VERSION = 'v2';
+const STATIC_CACHE = `promptcraft-static-${CACHE_VERSION}`;
+const API_CACHE = `promptcraft-api-${CACHE_VERSION}`;
+
 const STATIC_ASSETS = [
   '/',
   '/index.html',
   '/manifest.json',
-  '/vite.svg'
+  '/logo-192x192.png',
+  '/logo-512x512.png',
+  '/offline.html',
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
-  );
+  event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.addAll(STATIC_ASSETS)));
   self.skipWaiting();
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
+    caches.keys().then((cacheNames) =>
+      Promise.all(
         cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      );
-    })
+          .filter((name) => ![STATIC_CACHE, API_CACHE].includes(name))
+          .map((name) => caches.delete(name)),
+      ),
+    ),
   );
   self.clients.claim();
 });
 
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  const { request } = event;
+  const url = new URL(request.url);
 
-  // API calls - Network first, fallback to cache
+  if (request.method !== 'GET') return;
+
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      fetch(event.request)
+      fetch(request)
         .then((response) => {
-          // Clone response and cache it
-          if (response.status === 200 && event.request.method === 'GET') {
-            const responseClone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => {
-              cache.put(event.request, responseClone);
-            });
+          if (response.status === 200) {
+            const clone = response.clone();
+            caches.open(API_CACHE).then((cache) => cache.put(request, clone));
           }
           return response;
         })
-        .catch(() => caches.match(event.request))
+        .catch(async () => {
+          const cached = await caches.match(request);
+          return cached || new Response(JSON.stringify({ error: 'Offline' }), { status: 503, headers: { 'Content-Type': 'application/json' } });
+        }),
     );
     return;
   }
 
-  // Static assets & Navigation - Cache first, network fallback
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.match(request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;
-      
-      return fetch(event.request).catch(() => {
-        // Fallback to index.html for SPA routing on offline
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
-      });
-    })
+
+      return fetch(request)
+        .then((response) => {
+          if (request.mode === 'navigate') {
+            const responseClone = response.clone();
+            caches.open(STATIC_CACHE).then((cache) => cache.put('/index.html', responseClone));
+          }
+          return response;
+        })
+        .catch(async () => {
+          if (request.mode === 'navigate') {
+            return caches.match('/index.html') || caches.match('/offline.html');
+          }
+          return new Response('Offline', { status: 503, statusText: 'Offline' });
+        });
+    }),
   );
 });
