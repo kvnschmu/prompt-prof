@@ -1,7 +1,6 @@
+name: prompt-prof
+
 services:
-  # ─────────────────────────────
-  # Frontend (Vite → Nginx)
-  # ─────────────────────────────
   frontend:
     build:
       context: ./frontend
@@ -10,89 +9,58 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
     networks:
-      prompt_net:
-        ipv4_address: 172.32.0.20
-        aliases:
-          - nginx
+      - prompt_net
 
-  # ─────────────────────────────
-  # Backend (Node API)
-  # ─────────────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     restart: unless-stopped
-    networks:
-      prompt_net:
-        ipv4_address: 172.32.0.10
+    env_file:
+      - .env
     environment:
       NODE_ENV: production
       PORT: 5000
-
-      # Database
       DATABASE_URL: ${DATABASE_URL:-file:/app/prisma/data/dev.db}
-      #DATABASE_URL: file:/app/prisma/data/dev.db
-      #DATABASE_URL: file:./data/dev.db
-
-      # AI Providers
-      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       GEMINI_MODEL: ${GEMINI_MODEL:-gemma-3-27b-it}
-
-      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       OPENROUTER_MODEL: ${OPENROUTER_MODEL:-meta-llama/llama-3.3-70b-instruct:free}
-
-      # Security
-      CORS_ORIGIN: ${CORS_ORIGIN:-https://prompt-prof.reutemann.xyz}
-
-      # File Uploads
-      BASE_URL: ${BASE_URL:-https://prompt-prof.reutemann.xyz}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:${FRONTEND_PORT:-8080}}
+      BASE_URL: ${BASE_URL:-http://localhost:${FRONTEND_PORT:-8080}}
       UPLOAD_DIR: /app/uploads
-
     volumes:
       - promptcraft_data:/app/prisma/data
       - promptcraft_uploads:/app/uploads
-
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 5
       start_period: 30s
+    ports:
+      - "${BACKEND_PORT:-5000}:5000"
+    networks:
+      - prompt_net
 
-  # ─────────────────────────────
-  # Cloudflare Tunnel
-  # ─────────────────────────────
   cloudflared:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
+    profiles: ["tunnel"]
     command: tunnel run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     depends_on:
       frontend:
         condition: service_started
     networks:
-      prompt_net:
-        ipv4_address: 172.32.0.30
+      - prompt_net
 
-# ─────────────────────────────
-# Infrastructure
-# ─────────────────────────────
 networks:
   prompt_net:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.32.0.0/16
 
-# Named Volumes — persistent auch nach `docker compose down`
-# ACHTUNG: Nur `docker compose down -v` löscht sie!
-# Für maximale Sicherheit nach erstem Start:
-#   docker volume create promptcraft_data
-#   docker volume create promptcraft_uploads
-# Dann external: true aktivieren — immun gegen down -v
 volumes:
   promptcraft_data:
-    # external: true
   promptcraft_uploads:
-    # external: true

@@ -29,17 +29,21 @@ Die Anwendung ist primär für das Deployment via Docker Compose und Cloudflare 
    ```bash
    cp .env.example .env
    ```
-   Füge deine API Keys (`OPENAI_API_KEY` oder `GEMINI_API_KEY`) und den `CLOUDFLARE_TUNNEL_TOKEN` ein.
+   Trage mindestens einen AI-Key (`GEMINI_API_KEY` oder `OPENROUTER_API_KEY`) ein.
 
-2. **Docker Compose starten**
+2. **Docker Compose starten (lokal)**
    ```bash
-   docker compose up -d
+   docker compose up -d --build
    ```
-   *Das Setup startet:*
-   - `frontend` (nginx, serving static files)
-   - `backend` (Node API + Prisma Migrate)
-   - `db` (PostgreSQL)
-   - `cloudflared` (Erstellt den sicheren Tunnel zu deiner Domain)
+   Standardmäßig startet das Setup:
+   - `frontend` (nginx, über `http://localhost:8080`)
+   - `backend` (Node API, über `http://localhost:5000`)
+
+3. **Optional: Cloudflare Tunnel aktivieren**
+   Setze `CLOUDFLARE_TUNNEL_TOKEN` in `.env` und starte mit Profil:
+   ```bash
+   docker compose --profile tunnel up -d
+   ```
 
 ## 💻 Lokale Entwicklung
 
